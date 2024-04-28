@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="BbsMapper">
+
+	<select id="getBoardList" parameterType="com.weekend1.dto.BbsSearchDTO" resultType="com.weekend1.dto.BbsDTO">
+	SELECT 
+			ROW_NUMBER() OVER(ORDER BY BBS.BBS_ID) AS ROWNUM,
+			BBS.BBS_ID,
+			COD.CODE_NAME,
+			BBS.BBS_SUBJECT,
+			COUNT(REP.REPLY_ID) AS REPLY_CNT,
+			BBS.HIT_CNT,
+			MEM.MEMBER_NAME ,
+			BBS.REG_DTTM
+	FROM
+			EDU.BBS AS BBS
+			
+	INNER JOIN
+			EDU.MEMBERS AS MEM
+		
+		ON 	BBS.REG_ID = MEM.MEMBER_ID
+	
+	INNER JOIN
+			EDU.CODE AS COD
+			 
+		ON	BBS.BBS_TYPE = COD.CODE
+		
+	LEFT OUTER JOIN
+			EDU.REPLY AS REP
+		
+		ON	REP.BBS_ID = BBS.BBS_ID
+		AND	REP.USE_YN != 'N' 
+	
+	WHERE
+			BBS.USE_YN != 'N'
+				<choose>
+					<when test='bbsType == "notice"'>
+						AND BBS.BBS_TYPE = '01'
+					</when>
+					<when test='bbsType == "ordinary"'>
+						AND BBS.BBS_TYPE = '02'
+					</when>
+				</choose>
+			<if test="searchWord != null and searchWord != ''">
+				<if test='searchType == "subject" '>
+					AND BBS.BBS_SUBJECT LIKE CONCAT('%' , #{searchWord} , '%')
+				</if>
+				<if test='searchType == "contents" '>
+					AND BBS.BBS_CONTENTS LIKE CONCAT('%' , #{searchWord} , '%')
+				</if>
+				<if test='searchType == "subject,contents"'>
+					AND (BBS.BBS_SUBJECT LIKE CONCAT('%' , #{searchWord} , '%') OR BBS.BBS_CONTENTS LIKE CONCAT('%' , #{searchWord} , '%'))
+				</if>
+			</if>
+		
+	GROUP BY 
+			BBS.BBS_ID, 
+			COD.CODE_NAME, 
+			BBS.BBS_SUBJECT, 
+			BBS.HIT_CNT, 
+			MEM.member_name, 
+			BBS.REG_DTTM	
+	ORDER BY
+			BBS.BBS_ID DESC
+	LIMIT  #{pageLength}
+	OFFSET ( COALESCE(#{page}::integer, 1) -1) * #{pageLength} 	
+	</select>
+	
+	<select id="boardListCnt" parameterType="com.weekend1.dto.BbsSearchDTO" resultType="int">
+	SELECT
+			COUNT(BBS_ID)
+	FROM	
+			EDU.BBS
+	WHERE
+			BBS.USE_YN != 'N'
+
+				<choose>
+					<when test='bbsType == "notice"'>
+						AND BBS.BBS_TYPE = '01'
+					</when>
+					<when test='bbsType == "ordinary"'>
+						AND BBS.BBS_TYPE = '02'
+					</when>
+				</choose>
+			<if test="searchWord != null and searchWord != ''">
+				<if test='searchType == "subject" '>
+					AND BBS.BBS_SUBJECT LIKE CONCAT('%' , #{searchWord} , '%')
+				</if>
+				<if test='searchType == "contents" '>
+					AND BBS.BBS_CONTENTS LIKE CONCAT('%' , #{searchWord} , '%')
+				</if>
+				<if test='searchType == "subject,contents"'>
+					AND (BBS.BBS_SUBJECT LIKE CONCAT('%' , #{searchWord} , '%') OR BBS.BBS_CONTENTS LIKE CONCAT('%' , #{searchWord} , '%'))
+				</if>
+			</if>
+	</select>
+	
+	<insert id="writeBoard" parameterType="com.weekend1.dto.BbsDTO">
+	INSERT INTO EDU.BBS (
+			BBS_ID,
+			BBS_SUBJECT,
+			REG_ID,
+			BBS_TYPE,
+			REPLY_YN,
+			BBS_CONTENTS,
+			REG_DTTM
+	) VALUES 			(
+			(SELECT COALESCE(MAX(BBS_ID),0)+1 FROM EDU.BBS),
+			#{bbsSubject},
+			#{regId},
+			#{bbsType},
+			#{replyYn},	 
+			#{bbsContents},
+			NOW()	
+	)
+	</insert>
+	
+	<select id="detailBoard" parameterType="com.weekend1.dto.BbsDTO" resultType="com.weekend1.dto.BbsDTO">
+	SELECT
+			A.BBS_ID,
+			A.BBS_SUBJECT,
+			A.BBS_TYPE,
+			C.CODE_NAME,
+			A.HIT_CNT,
+			B.MEMBER_NAME,
+			A.REG_DTTM,
+			A.BBS_CONTENTS,
+			COUNT(D.BBS_ID) AS REPLY_CNT,
+			A.REPLY_YN
+	FROM
+			EDU.BBS AS A
+			
+	INNER JOIN
+			EDU.MEMBERS AS B
+	ON
+			A.REG_ID = B.MEMBER_ID
+			
+	INNER JOIN
+			EDU.CODE AS C
+	ON
+			A.BBS_TYPE = C.CODE
+	
+	LEFT OUTER JOIN
+			EDU.REPLY AS D
+	ON
+			A.BBS_ID = D.BBS_ID
+		
+	WHERE
+			A.BBS_ID = #{bbsId}
+	GROUP BY 
+			A.BBS_ID,
+			A.BBS_SUBJECT,
+			C.CODE_NAME,
+			A.HIT_CNT,
+			B.MEMBER_NAME,
+			A.REG_DTTM,
+			A.BBS_CONTENTS,
+			A.REPLY_YN
+	</select>
+
+	<update id="updateReadCnt" parameterType="int">
+	UPDATE
+			EDU.BBS
+	SET
+			HIT_CNT = HIT_CNT + 1
+	WHERE
+			BBS_ID = #{bbsId}
+	</update>
+	
+	<update id="modifyBoard" parameterType="com.weekend1.dto.BbsDTO">
+	UPDATE
+			EDU.BBS
+	SET
+			BBS_SUBJECT = #{bbsSubject},
+			MOD_ID = 
+			<choose>
+				<when test="modId == 'jmg'">1</when>
+				<when test="modId == 'lhs'">2</when>
+				<when test="modId == 'chw'">3</when>
+				<when test="modId == 'hsj'">4</when>
+			</choose>,
+			BBS_TYPE = 
+			<choose>
+	            <when test="bbsType == '02'">'02'</when>
+	            <otherwise>'01'</otherwise>
+	        </choose>,
+	        REPLY_YN = #{replyYn}, 
+			MOD_DTTM = NOW(),
+			BBS_CONTENTS = #{bbsContents}
+	WHERE
+			BBS_ID = #{bbsId}
+	</update>
+	
+	<update id="deleteBoard" parameterType="com.weekend1.dto.BbsSearchDTO">
+	UPDATE
+			EDU.BBS 
+	SET
+			USE_YN = 'N'
+	WHERE
+			BBS_ID = #{bbsId}	
+	</update>
+	
+	<select id="replyList" parameterType="com.weekend1.dto.BbsReplyDTO" resultType="com.weekend1.dto.BbsReplyDTO">
+	SELECT
+			ROW_NUMBER() OVER(ORDER BY A.REPLY_ID) AS ROWNUM,
+			A.REPLY_ID,
+			B.BBS_ID,
+			C.MEMBER_NAME,
+			A.REPLY_CONTENTS
+	FROM
+			EDU.REPLY AS A
+			
+	INNER JOIN
+			EDU.BBS AS B
+			
+		ON  A.BBS_ID = B.BBS_ID	
+	
+	INNER JOIN
+			EDU.MEMBERS AS C
+			
+		ON	A.REG_ID = C.MEMBER_ID
+		
+	WHERE
+			A.USE_YN !='N' AND
+			A.BBS_ID = #{bbsId}
+			
+	GROUP BY		
+			A.REPLY_ID,
+			B.BBS_ID,
+			C.MEMBER_NAME,
+			A.REPLY_CONTENTS
+	
+	ORDER BY
+			REPLY_ID ASC;			
+	</select>
+	
+	<insert id="writeReply" parameterType="com.weekend1.dto.BbsReplyDTO">
+	INSERT INTO EDU.REPLY(
+			REPLY_ID,
+			BBS_ID,
+			REPLY_CONTENTS,
+			REG_ID,
+			REG_DTTM	
+	) 
+	VALUES(
+			(SELECT COALESCE(MAX(REPLY_ID),0)+1 FROM EDU.REPLY),
+			#{bbsId},
+			#{replyContents},
+			<choose>
+				<when test="regId == 'jmg'">1</when>
+				<when test="regId == 'lhs'">2</when>
+				<when test="regId == 'chw'">3</when>
+				<when test="regId == 'hsj'">4</when>
+			</choose>,
+			NOW()			
+	)	
+	</insert>
+	
+	<update id="deleteReply" parameterType="com.weekend1.dto.BbsReplyDTO">
+	UPDATE
+			EDU.REPLY
+	SET
+			USE_YN = 'N'
+	WHERE
+			REPLY_ID = #{replyId}	
+	</update>
+	
+	<select id="getMember" parameterType="com.weekend1.dto.BbsMemberDTO" resultType="com.weekend1.dto.BbsMemberDTO">
+	SELECT
+			MEMBER_ID,
+			MEMBER_NAME
+	FROM
+			EDU.MEMBERS
+	</select>
+	
+	<select id="getCode" parameterType="com.weekend1.dto.BbsCodeDTO" resultType="com.weekend1.dto.BbsCodeDTO">
+	SELECT
+			CODE,
+			CODE_NAME
+	FROM
+			EDU.CODE
+	</select>
+
+</mapper>
