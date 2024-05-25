@@ -247,12 +247,7 @@
 			(SELECT COALESCE(MAX(REPLY_ID),0)+1 FROM EDU.REPLY),
 			#{bbsId},
 			#{replyContents},
-			<choose>
-				<when test="regId == 'jmg'">1</when>
-				<when test="regId == 'lhs'">2</when>
-				<when test="regId == 'chw'">3</when>
-				<when test="regId == 'hsj'">4</when>
-			</choose>,
+			#{regId},
 			NOW()			
 	)	
 	</insert>

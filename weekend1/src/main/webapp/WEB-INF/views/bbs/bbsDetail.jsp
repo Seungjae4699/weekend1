@@ -7,6 +7,7 @@
 <meta charset="UTF-8">
 <title>게시글 상세</title>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <script>
 //목록으로 이동
 	function goList() {
@@ -196,11 +197,10 @@
 						<td>
 						<form name="replyForm" id="reply" action="/writeReply" method="post">
 							<select id="regId" name="regIdSelect">
-								<option value="">선택</option>	
-								<option value="jmg">조문규</option>
-								<option value="lhs">이형술</option>
-								<option value="chw">최승우</option>
-								<option value="hsj">허승재</option>
+								<option value="">선택</option>
+								<c:forEach var="bm" items="${bbsMember }">
+									<option value="${bm.memberId }">${bm.memberName }</option>
+								</c:forEach>
 							</select>
 							</td>						
 							<td><input type="text" id="replyContents" name="replyContents" placeholder="댓글내용 입력" maxlength='50'></td>

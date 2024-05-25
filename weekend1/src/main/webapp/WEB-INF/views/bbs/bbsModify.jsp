@@ -7,6 +7,7 @@
 <meta charset="UTF-8">
 <title>게시글 수정</title>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <script>
 //게시글 목록이동
 function goList() {

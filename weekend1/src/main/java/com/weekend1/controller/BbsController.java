@@ -157,7 +157,8 @@ public class BbsController {
 	
 	@RequestMapping(value="/BbsDetail")
 	public ModelAndView detailBoard(@ModelAttribute BbsDTO bbsDTO , 
-									@ModelAttribute BbsReplyDTO bbsReplyDTO) {		
+									@ModelAttribute BbsReplyDTO bbsReplyDTO,
+									@ModelAttribute BbsMemberDTO bbsMemberDTO) {		
 		ModelAndView mv = new ModelAndView();
 		// 상세내용 가져오기
 		BbsDTO boardDetail = bbsService.detailBoard(bbsDTO);
@@ -165,10 +166,13 @@ public class BbsController {
 		bbsService.updateReadCnt(bbsDTO.getBbsId());
 		// 상세페이지 댓글 가져오기
 		List<BbsReplyDTO> replyList = bbsService.replyList(bbsReplyDTO);
+		// 멤버테이블에서 조회해서 등록자 가져옴 
+		List<BbsMemberDTO> bbsMember = bbsService.getMember(bbsMemberDTO);
 		
 		mv.setViewName("bbs/bbsDetail");
 		mv.addObject("bdDetail" , boardDetail);
 		mv.addObject("rpList" , replyList);
+		mv.addObject("bbsMember" , bbsMember);
 		
 		return mv;
 	}
@@ -258,5 +262,15 @@ public class BbsController {
 		
 		return modifyStr;
 	}
+	
+	@RequestMapping(value = "/test")
+	public ModelAndView testBootStrap() {
+		ModelAndView mv = new ModelAndView();
+		
+		mv.setViewName("bbs/test");
+		
+		return mv;
+	}
+	
 	
 }

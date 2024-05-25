@@ -7,13 +7,14 @@
 <meta charset="UTF-8">
 <title>게시글 리스트</title>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <script type="text/javascript">
-//글쓰기 이동
+// 글쓰기 이동
 	function goWrite() {
 		location.href='/BbsWrite';
 		
 }
-//상세페이지 이동
+// 상세페이지 이동
 	function goDetail(data) {
 		location.href='/BbsDetail?bbsId='+data;
 }
@@ -25,17 +26,17 @@
 		var form = document.getElementById("search");
 		
 		var bbsType1Checked = document.getElementById("bbsType1").checked;
-		var bbsType2Checked = document.getElementById("bbsType1").checked;
+		var bbsType1CheckedValue = document.getElementById("bbsType1").value;
+		var bbsType2Checked = document.getElementById("bbsType2").checked;
+		var bbsType2CheckedValue = document.getElementById("bbsType2").value;
 		
 		var searchType1Checked = document.getElementById("searchType1").checked;
 		var searchType2Checked = document.getElementById("searchType2").checked;
 		
+
 		if (!searchType1Checked && !searchType2Checked) {
 	        alert("제목 또는 내용 중 하나를 선택해야 합니다.");
-	        return;
-		
-		document.getElementById("page").value = 1;
-		
+	      	return;
 	    }
 		
 		form.submit();
@@ -55,6 +56,29 @@
 </script>
 </head>
 <body>
+
+<!-- <nav class="navbar navbar-expand-lg bg-body-tertiary">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">Navbar</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="#">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Features</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Pricing</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>  -->
+
 	<div align = "center">
 	<h2>게시글 리스트</h2>
 		<form name="searchForm" action="/BbsList" method="post" id="search">			
@@ -158,5 +182,13 @@
 			</ul>
 		</nav>
 	</div>
+	
+	<!-- 자바스크립트 추가 -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct"
+        crossorigin="anonymous"></script>
 </body>
 </html>
